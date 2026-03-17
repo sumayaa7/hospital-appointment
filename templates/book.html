@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+
+{% block title %}Book slot{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <h1>Confirm booking</h1>
+    <p class="muted">
+      {{ slot.doctor.full_name }} ({{ slot.doctor.specialty }}) ·
+      {{ slot.start_at.strftime("%a, %b %d") }} at {{ slot.start_at.strftime("%H:%M") }}
+    </p>
+  </section>
+
+  <section class="card">
+    <form method="post" class="form">
+      <label class="field">
+        <span class="field__label">Patient name</span>
+        <input name="patient_name" autocomplete="name" required minlength="2" />
+      </label>
+
+      <label class="field">
+        <span class="field__label">Phone</span>
+        <input name="phone" autocomplete="tel" required minlength="5" />
+      </label>
+
+      <div class="form__actions">
+        <a class="btn btn--ghost" href="{{ url_for('index') }}">Back</a>
+        <button class="btn btn--primary" type="submit">Book appointment</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}
+

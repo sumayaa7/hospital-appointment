@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+
+{% block title %}Booked{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <h1>Appointment booked</h1>
+    <p class="muted">Keep the cancel link if you need to change plans.</p>
+  </section>
+
+  <section class="card">
+    <div class="summary">
+      <div class="summary__row">
+        <div class="muted">Doctor</div>
+        <div>{{ appointment.slot.doctor.full_name }} ({{ appointment.slot.doctor.specialty }})</div>
+      </div>
+      <div class="summary__row">
+        <div class="muted">Time</div>
+        <div>{{ appointment.slot.start_at.strftime("%a, %b %d") }} · {{ appointment.slot.start_at.strftime("%H:%M") }}</div>
+      </div>
+      <div class="summary__row">
+        <div class="muted">Patient</div>
+        <div>{{ appointment.patient_name }} · {{ appointment.phone }}</div>
+      </div>
+      <div class="summary__row">
+        <div class="muted">Cancel link</div>
+        <div class="mono">
+          <a href="{{ url_for('cancel', token=appointment.cancel_token) }}">
+            {{ url_for('cancel', token=appointment.cancel_token, _external=true) }}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="form__actions">
+      <a class="btn" href="{{ url_for('index') }}">Book another</a>
+      <a class="btn btn--ghost" href="{{ url_for('admin_appointments') }}">View all appointments</a>
+    </div>
+  </section>
+{% endblock %}
+

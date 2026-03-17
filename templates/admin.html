@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+
+{% block title %}All appointments{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <h1>All appointments</h1>
+    <p class="muted">Simple admin view (for demo). Most recent first.</p>
+  </section>
+
+  <section class="card">
+    {% if not appointments %}
+      <div class="muted">No appointments yet. Book one on the home page.</div>
+    {% else %}
+      <div class="table">
+        <div class="table__head">
+          <div>Time</div>
+          <div>Doctor</div>
+          <div>Patient</div>
+          <div>Status</div>
+          <div>Actions</div>
+        </div>
+        {% for a in appointments %}
+          <div class="table__row">
+            <div class="mono">{{ a.slot.start_at.strftime("%Y-%m-%d %H:%M") }}</div>
+            <div>{{ a.slot.doctor.full_name }}<div class="muted">{{ a.slot.doctor.specialty }}</div></div>
+            <div>{{ a.patient_name }}<div class="muted">{{ a.phone }}</div></div>
+            <div>
+              {% if a.status == "BOOKED" %}
+                <span class="badge badge--ok">BOOKED</span>
+              {% else %}
+                <span class="badge badge--muted">CANCELED</span>
+              {% endif %}
+            </div>
+            <div>
+              <a class="btn btn--tiny btn--ghost" href="{{ url_for('cancel', token=a.cancel_token) }}">Cancel</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

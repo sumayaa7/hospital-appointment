@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+
+{% block title %}Book an appointment{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <h1>Book an appointment</h1>
+    <p class="muted">
+      Select a day to see all doctors and their available sessions for that date.
+    </p>
+  </section>
+
+  {% if available_dates %}
+    <div class="days-row days-row--global">
+      {% for d in available_dates %}
+        {% set iso = d.isoformat() %}
+        <a
+          href="{{ url_for('index', day=iso) }}"
+          class="day-pill{% if selected_date and d == selected_date %} day-pill--active{% endif %}"
+        >
+          <span class="day-pill__date">{{ d.strftime("%b %d") }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="grid">
+    {% for doctor in doctors %}
+      <section class="card">
+        <div class="card__header">
+          <div class="doctor__avatar">
+            <img src="{{ doctor.photo_url }}" alt="{{ doctor.full_name }}" loading="lazy" />
+          </div>
+          <div>
+            <div class="doctor__name">{{ doctor.full_name }}</div>
+            <div class="doctor__spec">{{ doctor.specialty }}</div>
+          </div>
+        </div>
+
+        {% set slots = slots_by_doctor.get(doctor.id, []) %}
+        {% if not slots %}
+          <div class="muted">No slots for this day.</div>
+        {% else %}
+          <div class="slots">
+            {% for slot in slots %}
+              {% set hour = slot.start_at.strftime("%H")|int %}
+              {% if 9 <= hour <= 14 %}
+                <div class="slot">
+                  <div class="slot__time">
+                    {{ slot.start_at.strftime("%H:%M") }}
+                    <span class="muted">({{ slot.duration_min }} min)</span>
+                  </div>
+
+                  {% if slot.is_free %}
+                    <a class="btn" href="{{ url_for('book', slot_id=slot.id) }}">Book</a>
+                  {% else %}
+                    <span class="badge badge--danger">Booked</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </section>
+    {% endfor %}
+  </div>
+{% endblock %}
+
