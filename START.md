@@ -1,19 +1,17 @@
-# Как запустить 4everCare (каждый раз, чтобы даты совпадали)
+# How to run 4everCare (fresh dates every time)
 
-Делай эти шаги **в день презентации** (или когда хочешь свежие даты).
-
----
-
-## Шаг 1. Открой PowerShell
-
-- Нажми `Win + X` → выбери **Windows PowerShell** (или **Terminal**).
-- Либо в поиске Windows введи `PowerShell` и открой.
+Do these steps **on presentation day** (or whenever you need up-to-date slot dates).
 
 ---
 
-## Шаг 2. Перейди в папку проекта
+## Step 1. Open PowerShell
 
-Скопируй и вставь в PowerShell, нажми Enter:
+- Press `Win + X` → **Windows PowerShell** or **Terminal**, or  
+- Search for `PowerShell` in the Start menu.
+
+---
+
+## Step 2. Go to the project folder
 
 ```powershell
 cd C:\Users\Administrator\hospital-appointment
@@ -21,72 +19,82 @@ cd C:\Users\Administrator\hospital-appointment
 
 ---
 
-## Шаг 3. Обнови базу под сегодняшний день
-
-Эта команда создаёт/пересоздаёт слоты на **сегодня + следующие 5 дней**.  
-Скопируй и вставь, нажми Enter:
+## Step 3. Refresh the database (today + next 5 days)
 
 ```powershell
 .\.venv\Scripts\python.exe app.py init-db
 ```
 
-Должно появиться: `Initialized database with demo data.`
+Expected: `Initialized database with demo data.`
 
-- Если вместо этого ошибка **"cannot be loaded because running scripts is disabled"** — переходи к **Варианту Б** внизу.
-- Если ошибка **"No module named 'dotenv'"** — значит, ты вызвала `py app.py ...` без пути к `.venv`. Всегда используй **полный путь** `.\.venv\Scripts\python.exe app.py ...`.
+**If you see "running scripts is disabled"** — use the full path above (no `Activate.ps1`), or see **Plan B** below.
+
+**If you see "No module named 'dotenv'"** — you used system `py` instead of `.venv`. Always use:
+
+`.\.venv\Scripts\python.exe app.py ...`
 
 ---
 
-## Шаг 4. Запусти сервер
+## Step 4. (Optional) Rebuild chatbot index after editing docs
 
-Скопируй и вставь, нажми Enter:
+Only if you changed files in `docs/`:
+
+```powershell
+.\.venv\Scripts\python.exe rag_build.py
+```
+
+Make sure **Ollama** is running and models are installed (see [CHATBOT_SETUP.md](CHATBOT_SETUP.md)).
+
+---
+
+## Step 5. Start the server
 
 ```powershell
 .\.venv\Scripts\python.exe app.py run
 ```
 
-Должно появиться что‑то вроде:
+Expected:
+
 ```
 * Running on http://127.0.0.1:5000
 ```
 
-Окно PowerShell **не закрывай** — пока оно открыто, сайт работает.
+**Keep this window open** while you demo.
 
 ---
 
-## Шаг 5. Открой сайт в браузере
+## Step 6. Open the site
 
-- Открой браузер (Chrome, Edge и т.д.).
-- В адресной строке введи: **http://127.0.0.1:5000/**
-- Нажми Enter.
+Browser address: **http://127.0.0.1:5000/**
 
-Сверху увидишь кнопки дней (например Mar 16, Mar 17, …) — это и есть актуальные даты на сегодня.
+You should see day buttons (e.g. Mar 16, Mar 17, …) with current dates.
+
+Click **?** (bottom-right) to test the support chat.
 
 ---
 
-## Кратко: порядок каждый раз
+## Every time — short checklist
 
 1. `cd C:\Users\Administrator\hospital-appointment`
-2. `.\.venv\Scripts\python.exe app.py init-db`   ← обновляет даты
-3. `.\.venv\Scripts\python.exe app.py run`      ← запускает сервер
-4. В браузере открыть **http://127.0.0.1:5000/**
+2. `.\.venv\Scripts\python.exe app.py init-db`
+3. `.\.venv\Scripts\python.exe app.py run`
+4. Browser → http://127.0.0.1:5000/
 
-Чтобы остановить сервер: в окне PowerShell нажми **Ctrl+C**.
+Stop server: **Ctrl+C** in PowerShell.
 
 ---
 
-## Вариант Б: если PowerShell пишет "running scripts is disabled"
+## Plan B — PowerShell script policy
 
-Тогда команду активации `.\.venv\Scripts\Activate.ps1` выполнить нельзя. Разрешить скрипты **один раз** (только для твоего пользователя):
+If activation is blocked, run **once** as Administrator:
 
-1. Открой PowerShell **от имени администратора** (правый клик → «Запуск от имени администратора»).
-2. Выполни:
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-3. На вопрос ответь `Y` и Enter.
-4. Закрой этот PowerShell. Дальше в обычном PowerShell можно использовать либо:
-   - `.\.venv\Scripts\Activate.ps1` а потом `py app.py init-db` и `py app.py run`,
-   - либо по‑прежнему **без активации**: `.\.venv\Scripts\python.exe app.py init-db` и `.\.venv\Scripts\python.exe app.py run`.
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
 
-Лучше запомнить путь `.\.venv\Scripts\python.exe` — так всё будет работать даже без активации.
+Answer `Y`. Or keep using:
+
+`.\.venv\Scripts\python.exe app.py init-db`  
+`.\.venv\Scripts\python.exe app.py run`
+
+(no activation needed)

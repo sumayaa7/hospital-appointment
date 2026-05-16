@@ -37,6 +37,74 @@
         Demo app for presentation. Data stored locally in SQLite.
       </div>
     </footer>
+    <button id="chat-toggle" aria-label="Open support chat" style="position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px; border: none; border-radius: 999px; background: #0f766e; color: #ffffff; font-size: 28px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 24px rgba(15,23,42,.28); z-index: 10000;">?</button>
+    <div id="chat-widget" style="display: none; position: fixed; right: 20px; bottom: 88px; width: 320px; background: #ffffff; border: 1px solid #94a3b8; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,.22); overflow: hidden; z-index: 9999;">
+      <div style="padding: 10px 12px; background: #0f766e; color: #fff; font-weight: 600;">Support Chat</div>
+      <div id="chat-messages" style="height: 260px; overflow: auto; padding: 10px; background: #e2e8f0; font-size: 14px;"></div>
+      <div style="display: flex; border-top: 1px solid #e5e7eb;">
+        <input id="chat-input" placeholder="Ask about this system..." style="flex: 1; border: none; padding: 10px; outline: none;" />
+        <button id="chat-send" style="border: none; background: #0f766e; color: #fff; padding: 0 14px; cursor: pointer;">Send</button>
+      </div>
+    </div>
+    <script>
+      (() => {
+        const widget = document.getElementById("chat-widget");
+        const toggle = document.getElementById("chat-toggle");
+        const messages = document.getElementById("chat-messages");
+        const input = document.getElementById("chat-input");
+        const send = document.getElementById("chat-send");
+        const sessionId = localStorage.getItem("chat_session_id") || crypto.randomUUID();
+        localStorage.setItem("chat_session_id", sessionId);
+
+        function setWidgetState(open) {
+          widget.style.display = open ? "block" : "none";
+          toggle.textContent = open ? "×" : "?";
+          toggle.setAttribute("aria-label", open ? "Close support chat" : "Open support chat");
+          if (open) input.focus();
+        }
+
+        function addMsg(role, text) {
+          const div = document.createElement("div");
+          div.style.margin = "8px 0";
+          div.style.padding = "8px 10px";
+          div.style.borderRadius = "8px";
+          div.style.color = "#0f172a";
+          div.style.background = role === "user" ? "#86efac" : "#cbd5e1";
+          div.style.border = "1px solid #94a3b8";
+          div.textContent = text;
+          messages.appendChild(div);
+          messages.scrollTop = messages.scrollHeight;
+        }
+
+        async function sendMsg() {
+          const text = input.value.trim();
+          if (!text) return;
+          addMsg("user", text);
+          input.value = "";
+          addMsg("bot", "Typing...");
+          try {
+            const res = await fetch("/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text, session_id: sessionId })
+            });
+            const data = await res.json();
+            messages.lastChild.remove();
+            addMsg("bot", data.answer || "No response");
+          } catch {
+            messages.lastChild.remove();
+            addMsg("bot", "I'm not sure about that. Please contact support.");
+          }
+        }
+
+        send.addEventListener("click", sendMsg);
+        input.addEventListener("keydown", (e) => { if (e.key === "Enter") sendMsg(); });
+        toggle.addEventListener("click", () => {
+          const isOpen = widget.style.display !== "none";
+          setWidgetState(!isOpen);
+        });
+      })();
+    </script>
   </body>
 </html>
 

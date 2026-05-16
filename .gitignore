@@ -1,5 +1,8 @@
+.venv/
+venv/
 vevn/
 __pycache__/
 *.pyc
 instance/
 .env
+vector_store/

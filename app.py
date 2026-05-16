@@ -7,13 +7,16 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
-from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from flask import Flask, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import UniqueConstraint
+from rag_chat import RagAssistant
 
 load_dotenv()
 
 db = SQLAlchemy()
+assistant: RagAssistant | None = None
+chat_sessions: dict[str, list[dict[str, str]]] = {}
 
 
 # Simple mapping name -> promo-style photo
@@ -39,6 +42,12 @@ def create_app() -> Flask:
 
     register_routes(app)
     register_cli(app)
+
+    global assistant
+    try:
+        assistant = RagAssistant()
+    except Exception:
+        assistant = None
 
     return app
 
@@ -118,6 +127,47 @@ class BookingForm:
 
 
 def register_routes(app: Flask) -> None:
+    @app.post("/chat")
+    def chat():
+        global assistant
+        data = request.get_json(silent=True) or {}
+        message = (data.get("message") or "").strip()
+        session_id = (data.get("session_id") or "default").strip()
+
+        if not message:
+            return jsonify({"answer": "Please enter a question.", "sources": []}), 400
+
+        if assistant is None:
+            return (
+                jsonify(
+                    {
+                        "answer": "I'm not sure about that. Please contact support.",
+                        "sources": [],
+                    }
+                ),
+                503,
+            )
+
+        history = chat_sessions.get(session_id, [])
+        try:
+            result = assistant.answer(message, history)
+        except Exception:
+            return (
+                jsonify(
+                    {
+                        "answer": "I'm not sure about that. Please contact support.",
+                        "sources": [],
+                    }
+                ),
+                503,
+            )
+
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": result["answer"]})
+        chat_sessions[session_id] = history[-12:]
+
+        return jsonify(result)
+
     @app.get("/")
     def index():
         now = datetime.now()
